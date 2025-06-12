@@ -33,7 +33,7 @@ public class LoanServiceImpl implements LoanService {
     private Loans createNewLoan(String mobileNumber) {
         Loans newLoan = new Loans();
 
-        newLoan.setLoanNumber(Long.toString(generateSecureAccountNumber()));
+        newLoan.setLoanNumber(Long.toString(generateLoanNumber()));
         newLoan.setMobileNumber(mobileNumber);
         newLoan.setLoanType(LoansConstants.HOME_LOAN);
         newLoan.setTotalLoan(LoansConstants.NEW_LOAN_LIMIT);
@@ -43,7 +43,7 @@ public class LoanServiceImpl implements LoanService {
         return newLoan;
     }
 
-    private long generateSecureAccountNumber() {
+    private long generateLoanNumber() {
         long min = 10000000000L;
         long max = 99999999999L;
         return min + Math.abs(secureRandom.nextLong() % (max - min + 1));

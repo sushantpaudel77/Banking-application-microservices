@@ -24,7 +24,7 @@ public class Cards extends BaseEntity{
 
     private String cardType;
 
-    private int totalList;
+    private int totalLimit;
 
     private int amountUsed;
 

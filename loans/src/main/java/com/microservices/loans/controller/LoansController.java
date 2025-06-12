@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(
         name = "CRUD REST APIs loans for my-Banking application",
-        description = "CRUD Operations for managing loans in the banking system"
+        description = "CRUD REST APIs in my-Banking application to CREATE, UPDATE, FETCH AND DELETE loans details"
 )
 @RestController
 @RequestMapping(path = "/api", produces = {MediaType.APPLICATION_JSON_VALUE})

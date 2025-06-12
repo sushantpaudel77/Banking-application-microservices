@@ -1,7 +1,6 @@
 package com.microservices.cards.exception;
 
-import com.microservices.accounts.dto.ErrorResponseDto;
-import com.microservices.accounts.exception.ResourceNotFoundException;
+import com.microservices.cards.dto.ErrorResponseDto;
 import jakarta.annotation.Nonnull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
