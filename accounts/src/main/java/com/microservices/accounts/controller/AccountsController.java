@@ -47,17 +47,11 @@ public class AccountsController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<ResponseDto> deleteAccountDetails(String mobileNumber) {
-       boolean isDelete = accountsService.deleteAccount(mobileNumber);
-       if (isDelete) {
-           return ResponseEntity
-                   .status(HttpStatus.OK)
-                   .body(new ResponseDto(AccountConstants.STATUS_200, AccountConstants.MESSAGE_200));
-       } else {
-           return ResponseEntity
-                   .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                   .body(new ResponseDto(AccountConstants.STATUS_500, AccountConstants.MESSAGE_500));
-       }
+    public ResponseEntity<?> deleteAccountDetails(String mobileNumber) {
+        boolean isDelete = accountsService.deleteAccount(mobileNumber);
+        return isDelete
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }
 
