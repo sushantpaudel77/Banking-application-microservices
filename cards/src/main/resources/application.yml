@@ -5,6 +5,9 @@ spring:
   profiles:
     active: prod
 
+  application:
+    name: cards
+
   datasource:
     url: jdbc:h2:mem:testdb
     driverClassName: org.h2.Driver
@@ -19,15 +22,5 @@ spring:
       ddl-auto: update
     show-sql: true
 
-
-build:
-  version: 3.0
-
-cards:
-  message: Welcome to my-Banking application
-  contactDetails:
-    name: John Doe
-    email: johndoe@example.com
-  onCallSupport:
-    - "(777)444-222"
-    - "(777)222-444"
+  config:
+    import: "optional:configserver:http://localhost:8071/"

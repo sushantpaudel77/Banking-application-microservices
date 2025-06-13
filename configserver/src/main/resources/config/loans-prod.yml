@@ -1,12 +1,7 @@
-spring:
-  config:
-    activate:
-      on-profile: prod
-
 build:
   version: 1.0
 
-accounts:
+loans:
   message: Welcome to my-Banking application Prod APIs
   contactDetails:
     name: Bob finch

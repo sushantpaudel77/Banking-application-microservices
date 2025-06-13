@@ -1,12 +1,7 @@
-spring:
-  config:
-    activate:
-      on-profile: qa
-
 build:
   version: 2.0
 
-accounts:
+loans:
   message: Welcome to my-Banking application QA APIs
   contactDetails:
     name: Alice Smith

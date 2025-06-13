@@ -1,0 +1,11 @@
+build:
+  version: 3.0
+
+accounts:
+  message: Welcome to my-Banking application
+  contactDetails:
+    name: John Doe
+    email: johndoe@example.com
+  onCallSupport:
+    - "(777)444-222"
+    - "(777)222-444"
