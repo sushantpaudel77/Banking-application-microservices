@@ -1,6 +1,7 @@
 package com.microservices.cards.controller;
 
 import com.microservices.cards.constants.CardsConstants;
+import com.microservices.cards.dto.CardsContactDto;
 import com.microservices.cards.dto.CardsDto;
 import com.microservices.cards.dto.ErrorResponseDto;
 import com.microservices.cards.dto.ResponseDto;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +32,8 @@ import org.springframework.web.bind.annotation.*;
 public class CardController {
 
     private final CardsService cardsService;
+    private final CardsContactDto accountContactDto;
+    private final Environment environment;
 
     @Operation(
             summary = "Create Card REST API",
@@ -125,5 +129,66 @@ public class CardController {
                 .body(new ResponseDto(CardsConstants.STATUS_200, CardsConstants.MESSAGE_200))
                 : ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
                 .body(new ResponseDto(CardsConstants.STATUS_417, CardsConstants.MESSAGE_417_DELETE));
+    }
+
+    @Operation(
+            summary = "Get Build information",
+            description = "Get Build information that is deployed into accounts microservices"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Status INTERNAL SERVER ERROR",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDto.class)
+            )
+    )
+    @GetMapping("/build-info")
+    public ResponseEntity<String> getBuildVersion() {
+        return ResponseEntity.ok("3.0");
+    }
+
+
+    @Operation(
+            summary = "Get Java Version",
+            description = "Get Java versions details that is installed into cards microservices"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Status INTERNAL SERVER ERROR",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDto.class)
+            )
+    )
+    @GetMapping("/java-version")
+    public ResponseEntity<String> getJavaVersion() {
+        return ResponseEntity.ok(environment.getProperty("JAVA_HOME"));
+    }
+
+    @Operation(
+            summary = "Get Contact Info",
+            description = "Contact Info details that can be reached out in case of any issues"
+    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "HTTP Status OK"
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "HTTP Status INTERNAL SERVER ERROR",
+            content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDto.class)
+            )
+    )
+    @GetMapping("/contact-info")
+    public ResponseEntity<CardsContactDto> getContactInfo() {
+        return ResponseEntity.ok(accountContactDto);
     }
 }

@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+build:
+  version: 2.0
+
+loans:
+  message: Welcome to my-Banking application QA APIs
+  contactDetails:
+    name: Alice Smith
+    email: alicesmith@example.com
+  onCallSupport:
+    - "(888)555-222"
+    - "(333)666-444"
