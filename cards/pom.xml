@@ -28,6 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<jib-maven-plugin.version>3.4.4</jib-maven-plugin.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -100,6 +101,16 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>${jib-maven-plugin.version}</version>
+				<configuration>
+					<to>
+						<image>sushantpaudel77/${project.artifactId}</image>
+					</to>
 				</configuration>
 			</plugin>
 		</plugins>
