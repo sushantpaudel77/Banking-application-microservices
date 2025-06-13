@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+build:
+  version: 1.0
+
+accounts:
+  message: Welcome to my-Banking application Prod APIs
+  contactDetails:
+    name: Bob finch
+    email: bobfinch@example.com
+  onCallSupport:
+    - "(111)444-777"
+    - "(333)777-444"
