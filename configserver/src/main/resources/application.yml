@@ -3,13 +3,51 @@ spring:
     name: configserver
 
   profiles:
-    active: native
+    # Use this if you want to load configs from the local file system
+    # active: native
+
+    # Use this to load configs from a Git repository
+    active: git
 
   cloud:
-    server:
-      native:
-        search-locations: "classpath:/config"
+    config:
+      server:
+        # Native file-based config location (if native profile is active)
+        # native:
+        #   search-locations: "classpath:/config"
+        #   search-locations: "file:///home/sushant/Documents/my-Banking-app-config-server"
+
+        # Git-based config repository (if git profile is active)
+        git:
+          uri: "https://github.com/sushantpaudel77/my-Banking-application-config-server"
+          default-label: main
+          timeout: 5
+          clone-on-start: true
+          force-pull: true
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+encrypt:
+  key: ${ENCRYPT_KEY}
+
 
 server:
   port: 8071
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  health:
+    probes:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true

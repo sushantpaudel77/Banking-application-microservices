@@ -1,0 +1,85 @@
+services:
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-ms
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  # ✅ FIXED: Configserver now inherits from base without SPRING_CONFIG_IMPORT
+  configserver:
+    image: "sushantpaudel77/configserver"
+    container_name: configserver-ms
+    ports:
+      - "8071:8071"
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8071/actuator/health/readiness || exit 1"]
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    extends:
+      file: common-config.yml
+      service: microservice-base-config   # ✅ Not "microservice-with-import"
+    environment:
+      SPRING_APPLICATION_NAME: configserver
+      SPRING_PROFILES_ACTIVE: default
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,refresh,busrefresh
+
+  accounts:
+    image: "sushantpaudel77/accounts"
+    container_name: account-ms
+    ports:
+      - "8080:8080"
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: accounts
+    extends:
+      file: common-config.yml
+      service: microservice-with-import   # ✅ Will use configserver import
+
+  cards:
+    image: "sushantpaudel77/cards"
+    container_name: cards-ms
+    ports:
+      - "9000:9000"
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: cards
+    extends:
+      file: common-config.yml
+      service: microservice-with-import
+
+  loans:
+    image: "sushantpaudel77/loans"
+    container_name: loans-ms
+    ports:
+      - "8090:8090"
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: loans
+    extends:
+      file: common-config.yml
+      service: microservice-with-import
+
+networks:
+  my-banking-application:
+    driver: bridge

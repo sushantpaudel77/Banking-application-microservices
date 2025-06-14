@@ -13,9 +13,11 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password: ''
+
   h2:
     console:
       enabled: true
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -24,3 +26,15 @@ spring:
 
   config:
     import: "optional:configserver:http://localhost:8071/"
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

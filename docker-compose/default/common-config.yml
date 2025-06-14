@@ -1,0 +1,22 @@
+services:
+  network-deploy-service:
+    networks:
+      - my-banking-application
+
+  microservice-base-config:
+    extends:
+      service: network-deploy-service
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbit"
+
+  # ✅ All microservices except configserver should use this
+  microservice-with-import:
+    extends:
+      service: microservice-base-config
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
