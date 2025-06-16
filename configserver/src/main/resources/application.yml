@@ -1,23 +1,11 @@
 spring:
   application:
     name: configserver
-
   profiles:
-    # Use this if you want to load configs from the local file system
-    # active: native
-
-    # Use this to load configs from a Git repository
     active: git
-
   cloud:
     config:
       server:
-        # Native file-based config location (if native profile is active)
-        # native:
-        #   search-locations: "classpath:/config"
-        #   search-locations: "file:///home/sushant/Documents/my-Banking-app-config-server"
-
-        # Git-based config repository (if git profile is active)
         git:
           uri: "https://github.com/sushantpaudel77/my-Banking-application-config-server"
           default-label: main
@@ -25,15 +13,21 @@ spring:
           clone-on-start: true
           force-pull: true
 
-#  rabbitmq:
-#    host: localhost
-#    port: 5672
-#    username: guest
-#    password: guest
+# Disable Eureka for Config Server
+eureka:
+  client:
+    enabled: true
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/  # Fixed port
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
 
 encrypt:
   key: ${ENCRYPT_KEY}
-
 
 server:
   port: 8071
@@ -43,7 +37,6 @@ management:
     web:
       exposure:
         include: "*"
-
   health:
     probes:
       enabled: true
