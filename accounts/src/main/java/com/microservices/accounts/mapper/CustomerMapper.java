@@ -1,6 +1,7 @@
 package com.microservices.accounts.mapper;
 
 import com.microservices.accounts.dto.CustomerDto;
+import com.microservices.accounts.dto.CustomersDetailsDto;
 import com.microservices.accounts.entity.Customer;
 
 public class CustomerMapper {
@@ -20,5 +21,12 @@ public class CustomerMapper {
         customer.setEmail(customerDto.getEmail());
         customer.setMobileNumber(customerDto.getMobileNumber());
         return customer;
+    }
+
+    public static CustomersDetailsDto mapToCustomerDetailsDto(Customer customer, CustomersDetailsDto customersDetailsDto) {
+        customersDetailsDto.setName(customer.getName());
+        customersDetailsDto.setEmail(customer.getEmail());
+        customersDetailsDto.setMobileNumber(customer.getMobileNumber());
+        return customersDetailsDto;
     }
 }
