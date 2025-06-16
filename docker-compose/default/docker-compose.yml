@@ -171,6 +171,26 @@ services:
       file: common-config.yml
       service: microservice-with-import
 
+  loans1:
+    image: "sushantpaudel77/loans"
+    container_name: loans-ms1
+    ports:
+      - "8091:8090"
+    depends_on:
+      configserver:
+        condition: service_healthy
+      eurekaserver:
+        condition: service_healthy
+      loansdb:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: loans
+      SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3306/loansdb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
+    extends:
+      file: common-config.yml
+      service: microservice-with-import
+
 networks:
   my-banking-application:
     driver: bridge
