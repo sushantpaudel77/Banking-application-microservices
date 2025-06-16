@@ -13,7 +13,7 @@ spring:
           clone-on-start: true
           force-pull: true
 
-# Disable Eureka for Config Server
+# Enable Eureka for Config Server
 eureka:
   client:
     enabled: true

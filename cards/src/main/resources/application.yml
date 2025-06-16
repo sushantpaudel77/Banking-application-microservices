@@ -59,4 +59,17 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "*"           # expose all endpoints including shutdown
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+    shutdown:
+      enabled: true            # enable shutdown endpoint
+
+
+info:
+  app:
+    name: "accounts"
+    description: "My-Banking Loans Application"
+    version: "1.0.0"

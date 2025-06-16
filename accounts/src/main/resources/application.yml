@@ -41,7 +41,6 @@ spring:
           jdbc:
             lob:
               non_contextual_creation: true
-
   sql:
     init:
       mode: always
@@ -59,25 +58,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: '*'
+        include: "*"           # expose all endpoints including shutdown
+      base-path: /actuator
   endpoint:
+    health:
+      show-details: when-authorized
     shutdown:
-      enabled: true
-  info:
-    env:
-      enabled: true
-
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://localhost:8070/eureka/
+      enabled: true            # enable shutdown endpoint
 
 info:
   app:
     name: "accounts"
-    discription: My-Banking Accounts Application
+    description: "My-Banking Accounts Application"
     version: "1.0.0"
