@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
         name = "CRUD REST APIs for Cards in my-Banking application",
         description = "CRUD REST APIs in my-Banking application to CREATE, UPDATE, FETCH AND DELETE card details"
 )
+@Slf4j
 @RestController
 @RequestMapping(path = "/api", produces = MediaType.APPLICATION_JSON_VALUE)
 @AllArgsConstructor
@@ -72,11 +74,12 @@ public class CardController {
             }
     )
     @GetMapping("/fetch")
-    public ResponseEntity<CardsDto> fetchCardDetails(
+    public ResponseEntity<CardsDto> fetchCardDetails(@RequestHeader("ezypay-correlation-id") String correlationId,
             @RequestParam
             @Pattern(regexp = "^[0-9]{10}$", message = "Mobile number must be 10 digits")
             String mobileNumber
     ) {
+        log.debug("ezyPay-correlation-id found:{}", correlationId);
         CardsDto cardsDto = cardsService.fetchCard(mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(cardsDto);
     }

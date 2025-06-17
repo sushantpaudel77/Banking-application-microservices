@@ -70,5 +70,9 @@ management:
 info:
   app:
     name: "accounts"
-    description: "My-Banking Cards Application"
+    description: "ezypay Loans Application"
     version: "1.0.0"
+
+logging:
+  level:
+    com.microservices.loans: DEBUG

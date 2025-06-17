@@ -69,5 +69,9 @@ management:
 info:
   app:
     name: "accounts"
-    description: "My-Banking Accounts Application"
+    description: "ezyPay Accounts Application"
     version: "1.0.0"
+
+logging:
+  level:
+    com.microservices.accounts: DEBUG

@@ -37,11 +37,14 @@ info:
     description: "ezyPay apigateway Application"
     version: "1.0.0"
 
+
 logging:
   level:
+    com.microservices.gatewayserver: DEBUG
     org.springframework.cloud.gateway: INFO
     org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
     org.springframework.cloud.gateway.filter.GatewayMetricsFilter: INFO
+
 
 
 

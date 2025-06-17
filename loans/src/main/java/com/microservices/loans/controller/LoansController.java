@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(
         name = "CRUD REST APIs loans for my-Banking application",
         description = "CRUD REST APIs in my-Banking application to CREATE, UPDATE, FETCH AND DELETE loans details"
@@ -71,9 +73,11 @@ public class LoansController {
     @ApiResponse(responseCode = "500", description = "HTTP Status Internal Server Error",
             content = @Content(schema = @Schema(implementation = ErrorResponseDto.class)))
     @GetMapping("/fetch")
-    public ResponseEntity<LoansDto> fetchLoanDetails(@RequestParam
+    public ResponseEntity<LoansDto> fetchLoanDetails(@RequestHeader("ezypay-correlation-id") String correlationId,
+                                                     @RequestParam
                                                      @Pattern(regexp = MOBILE_REGEX, message = "Mobile number must be exactly 10 digits")
                                                      String mobileNumber) {
+        log.debug("ezyPay-correlation-id found:{}", correlationId);
         LoansDto loansDto = loanService.fetchLoan(mobileNumber);
         return ResponseEntity.status(HttpStatus.OK).body(loansDto);
     }
