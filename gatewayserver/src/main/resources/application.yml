@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: gatewayserver
+
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+    health:
+      show-details: when-authorized
+
+  endpoint:
+    gateway:
+      access: unrestricted
+
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: "apigateway"
+    description: "My-Banking apigateway Application"
+    version: "1.0.0"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
+    org.springframework.cloud.gateway.filter.GatewayMetricsFilter: INFO
+
+
+
+# Optional RabbitMQ settings if needed in future
+# rabbitmq:
+#   host: localhost
+#   port: 5672
+#   username: guest
+#   password: guest
