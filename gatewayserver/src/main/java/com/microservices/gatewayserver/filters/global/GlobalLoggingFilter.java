@@ -1,4 +1,4 @@
-package com.microservices.gatewayserver.filters;
+package com.microservices.gatewayserver.filters.global;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

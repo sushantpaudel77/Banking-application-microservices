@@ -1,4 +1,4 @@
-package com.microservices.gatewayserver.filters;
+package com.microservices.gatewayserver.filters.base;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
