@@ -12,6 +12,7 @@ spring:
           discovery:
             locator:
               enabled: true
+              lower-case-service-id: true
 
 management:
   endpoints:
@@ -33,7 +34,7 @@ management:
 info:
   app:
     name: "apigateway"
-    description: "My-Banking apigateway Application"
+    description: "ezyPay apigateway Application"
     version: "1.0.0"
 
 logging:
