@@ -9,8 +9,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.publisher.Mono;
 
-
-
 @Configuration
 public class ResponseTraceFilter {
 
