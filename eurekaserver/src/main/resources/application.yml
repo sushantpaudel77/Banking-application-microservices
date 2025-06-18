@@ -8,13 +8,22 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
-  health:
-    readiness-state:
-      enabled: true
-    liveness-state:
-      enabled: true
+        include: "*"           # expose all endpoints including shutdown
+      base-path: /actuator
   endpoint:
     health:
-      probes:
-        enabled: true
+      show-details: when-authorized
+    shutdown:
+      enabled: true            # enable shutdown endpoint
+
+  health:
+    probes:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+
+  info:
+    env:
+      enabled: true

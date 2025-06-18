@@ -135,11 +135,11 @@
 				<version>${jib-maven-plugin.version}</version>
 				<configuration>
 					<from>
-						<image>eclipse-temurin:17-jdk-alpine</image>
+						<image>eclipse-temurin:17-jdk</image> <!-- Remove -alpine -->
 					</from>
 					<to>
 						<image>sushantpaudel77/${project.artifactId}</image>
-						<credHelper></credHelper> <!-- leave empty -->
+						<credHelper></credHelper>
 						<auth>
 							<username></username>
 							<password></password>

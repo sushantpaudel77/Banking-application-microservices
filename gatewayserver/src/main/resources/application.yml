@@ -20,10 +20,17 @@ management:
       exposure:
         include: "*"
       base-path: /actuator
-    health:
-      show-details: when-authorized
 
   endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState
     gateway:
       access: unrestricted
 
