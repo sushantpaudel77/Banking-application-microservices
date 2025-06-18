@@ -1,34 +1,20 @@
 spring:
   application:
-    name: eurekaserver
+    name: "eurekaserver"
   config:
-    import: "optional:configserver:http://localhost:8071/"
-
-# Remove any eureka client configuration from here
-# since it will come from the Config Server
-
-server:
-  port: 8070
-
-eureka:
-  instance:
-    hostname: localhost
-  client:
-    fetchRegistry: false
-    registerWithEureka: false
-    serviceUrl:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+    import: "optional:configserver:http://configserver:8071/"
 
 management:
   endpoints:
     web:
       exposure:
         include: "*"
-
   health:
-    probes:
+    readiness-state:
       enabled: true
-    livenessstate:
+    liveness-state:
       enabled: true
-    readinessstate:
-      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true

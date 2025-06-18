@@ -1,71 +1,45 @@
 server:
   port: 8090
-
 spring:
   application:
-    name: loans
-
+    name: "loans"
   profiles:
-    active: prod
-
-#  datasource:
-#    url: jdbc:mysql://localhost:3307/loansdb
-#    username: root
-#    password: root
-#  jpa:
-#    hibernate:
-##      ddl-auto: create-drop
-#      ddl-auto: update
-#    show-sql: true
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.MySQL8Dialect
-#        format_sql: true
-
+    active: "prod"
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
     username: sa
-    password:
-    h2:
-      console:
-        enabled: true
-        path: /h2-console
-        settings:
-          web-allow-others: true
-    jpa:
-      show-sql: true
-      properties:
-        hibernate:
-          format_sql: true
-          jdbc:
-            lob:
-              non_contextual_creation: true
-  sql:
-    init:
-      mode: always
-
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
   config:
-    import: "optional:configserver:http://localhost:8071/"
-
-#  rabbitmq:
-#    host: localhost
-#    port: 5672
-#    username: guest
-#    password: guest
+    import: "optional:configserver:http://configserver:8071/"
 
 management:
   endpoints:
     web:
       exposure:
-        include: "*"           # expose all endpoints including shutdown
-      base-path: /actuator
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
   endpoint:
-    health:
-      show-details: when-authorized
     shutdown:
-      enabled: true            # enable shutdown endpoint
-
+      access: unrestricted
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
 
 info:
   app:

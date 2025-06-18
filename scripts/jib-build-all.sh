@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define array of microservice directories
-services=("eurekaserver" "configserver" "accounts" "cards" "loans")
+services=("eurekaserver" "configserver" "accounts" "cards" "loans" "gatewayserver")
 
 # Loop through each and build with Jib
 for service in "${services[@]}"; do

@@ -74,9 +74,18 @@
 				<artifactId>jib-maven-plugin</artifactId>
 				<version>${jib-maven-plugin.version}</version>
 				<configuration>
+					<from>
+						<image>eclipse-temurin:17-jdk-alpine</image>
+					</from>
 					<to>
 						<image>sushantpaudel77/${project.artifactId}</image>
+						<credHelper></credHelper> <!-- leave empty -->
+						<auth>
+							<username></username>
+							<password></password>
+						</auth>
 					</to>
+					<allowInsecureRegistries>true</allowInsecureRegistries>
 				</configuration>
 			</plugin>
 		</plugins>

@@ -11,6 +11,7 @@ images=(
   "sushantpaudel77/cards"
   "sushantpaudel77/loans"
   "sushantpaudel77/accounts"
+  "sushantpaudel77/gatewayserver"
 )
 
 echo "🚀 Starting push to Docker Hub..."
