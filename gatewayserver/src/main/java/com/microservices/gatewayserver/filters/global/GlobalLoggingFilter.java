@@ -19,9 +19,8 @@ public class GlobalLoggingFilter implements GlobalFilter, Ordered {
         //        pre-filter
         GlobalLoggingFilter.log.info("Logging from Global Pre: {}", exchange.getRequest().getURI());
 
-        return chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            log.info("Logging from Global Post: {}", exchange.getResponse().getStatusCode());
-        }));
+        return chain.filter(exchange).then(Mono.fromRunnable(() ->
+            log.info("Logging from Global Post: {}", exchange.getResponse().getStatusCode())));
     }
 
     @Override

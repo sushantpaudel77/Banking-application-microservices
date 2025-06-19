@@ -22,7 +22,9 @@ public class GatewayRoutesConfig {
                         .path("/ezypay/accounts/**")
                         .filters(f -> f
                                 .rewritePath("/ezypay/accounts/(?<accountsSegment>.*)", "/${accountsSegment}")
-                                .filter(responseHeaderFilter.addResponseHeader()))
+                                .filter(responseHeaderFilter.addResponseHeader())
+                                .circuitBreaker(config -> config.setName("accountsCircuitBreaker")
+                                        .setFallbackUri("forward:/contactSupport")))
                         .uri("lb://ACCOUNTS"))
                 .route("loans_route", r -> r
                         .path("/ezypay/loans/**")
