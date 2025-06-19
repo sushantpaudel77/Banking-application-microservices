@@ -59,7 +59,6 @@ resilience4j.circuitbreaker:
       failureRateThreshold: 50
       waitDurationInOpenState: 10s
 
-
 # Optional RabbitMQ settings if needed in future
 # rabbitmq:
 #   host: localhost

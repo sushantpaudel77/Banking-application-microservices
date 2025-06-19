@@ -13,6 +13,9 @@ import lombok.Setter;
 @Setter
 public class Accounts extends BaseEntity{
 
+    @Column(name = "customer_id")
+    private Long customerId;
+
     @Id
     @Column(name = "account_number")
     private Long accountNumber;
@@ -22,8 +25,5 @@ public class Accounts extends BaseEntity{
 
     @Column(name = "branch_address")
     private String branchAddress;
-
-    @Column(name = "customer_id")
-    private Long customerId;
 
 }
