@@ -5,6 +5,9 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+
+import java.time.Duration;
 
 @Configuration
 public class GatewayRoutesConfig {
@@ -30,7 +33,11 @@ public class GatewayRoutesConfig {
                         .path("/ezypay/loans/**")
                         .filters(f -> f
                                 .rewritePath("/ezypay/loans/(?<loansSegment>.*)", "/${loansSegment}")
-                                .filter(responseHeaderFilter.addResponseHeader()))
+                                .filter(responseHeaderFilter.addResponseHeader())
+                                .retry(retryConfig -> retryConfig.setRetries(3)
+                                        .setMethods(HttpMethod.GET)
+                                        .setBackoff(Duration.ofMillis(100), Duration.ofMillis(1000),
+                                                2,true)))
                         .uri("lb://LOANS"))
                 .route("cards_route", r -> r
                         .path("/ezypay/cards/**")

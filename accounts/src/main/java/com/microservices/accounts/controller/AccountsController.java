@@ -6,6 +6,7 @@ import com.microservices.accounts.dto.CustomerDto;
 import com.microservices.accounts.dto.ErrorResponseDto;
 import com.microservices.accounts.dto.ResponseDto;
 import com.microservices.accounts.service.AccountsService;
+import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Tag(
         name = "CRUD REST APIs accounts for my-Banking application",
         description = "CRUD operations for managing customer accounts in the banking system"
@@ -175,9 +178,18 @@ public class AccountsController {
                     schema = @Schema(implementation = ErrorResponseDto.class)
             )
     )
+
+    @Retry(name = "getBuildInfo", fallbackMethod = "getBuildInfoFallback")
     @GetMapping("/build-info")
-    public ResponseEntity<String> getBuildVersion() {
-        return ResponseEntity.ok("3.0");
+    public ResponseEntity<String> getBuildInfo() {
+        log.debug("getBuildInfo() method Invoked");
+        throw new NullPointerException();
+//        return ResponseEntity.ok(buildVersion);
+    }
+
+    public ResponseEntity<String> getBuildInfoFallback(Throwable throwable) {
+        log.debug("getBuildInfoFallback() method Invoked");
+        return ResponseEntity.ok("0.9");
     }
 
     @Operation(
