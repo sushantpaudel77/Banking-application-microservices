@@ -1,6 +1,5 @@
 package com.microservices.accounts.client;
 
-import com.microservices.accounts.dto.CardsDto;
 import com.microservices.accounts.dto.LoansDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
