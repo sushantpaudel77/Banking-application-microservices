@@ -57,7 +57,8 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 2
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
-        eventConsumerBufferSize: 10  # Add this if you want to see circuit breaker events
+        eventConsumerBufferSize: 10
+
 #    instances:
 #      accounts:
 #        baseConfig: default

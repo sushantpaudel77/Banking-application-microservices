@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Docker Hub login
-echo "🔐 Logging into Docker Hub..."
+echo "Logging into Docker Hub..."
 docker login
 
 # List of fully qualified image names
@@ -27,5 +27,5 @@ for image in "${images[@]}"; do
   fi
 done
 
-echo "🏁 All images pushed to Docker Hub!"
+echo "All images pushed to Docker Hub!"
 

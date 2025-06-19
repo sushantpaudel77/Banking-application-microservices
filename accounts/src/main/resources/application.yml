@@ -67,6 +67,16 @@ resilience4j:
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
         eventConsumerBufferSize: 10  # Enable event consumption
+
+  retry:
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 100ms
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+
+
 #        recordExceptions:
 #          - java.net.ConnectException
 #          - java.net.SocketTimeoutException
