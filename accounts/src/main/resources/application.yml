@@ -66,22 +66,22 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 2
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
-        eventConsumerBufferSize: 10  
-        recordExceptions:
-          - java.net.ConnectException
-          - java.net.SocketTimeoutException
-          - java.io.IOException
-        ignoreExceptions:
-          - java.lang.IllegalArgumentException
+        eventConsumerBufferSize: 10  # Enable event consumption
+#        recordExceptions:
+#          - java.net.ConnectException
+#          - java.net.SocketTimeoutException
+#          - java.io.IOException
+#        ignoreExceptions:
+#          - java.lang.IllegalArgumentException
 
-    instances:
-      cards:
-        baseConfig: default
-        registerHealthIndicator: true
-
-      loans:
-        baseConfig: default
-        registerHealthIndicator: true
+#    instances:
+#      cards:
+#        baseConfig: default
+#        registerHealthIndicator: true
+#
+#      loans:
+#        baseConfig: default
+#        registerHealthIndicator: true
 
 info:
   app:
@@ -92,4 +92,4 @@ info:
 logging:
   level:
     com.microservices.accounts: DEBUG
-    io.github.resilience4j: DEBUG  
+    io.github.resilience4j: DEBUG  # Add this for circuit breaker logs
