@@ -66,7 +66,7 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 2
         failureRateThreshold: 50
         waitDurationInOpenState: 10s
-        eventConsumerBufferSize: 10  # Enable event consumption
+        eventConsumerBufferSize: 10  
         recordExceptions:
           - java.net.ConnectException
           - java.net.SocketTimeoutException
@@ -92,4 +92,4 @@ info:
 logging:
   level:
     com.microservices.accounts: DEBUG
-    io.github.resilience4j: DEBUG  # Add this for circuit breaker logs
+    io.github.resilience4j: DEBUG  
