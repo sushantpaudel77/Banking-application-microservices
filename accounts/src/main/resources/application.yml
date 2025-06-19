@@ -68,13 +68,18 @@ resilience4j:
         waitDurationInOpenState: 10s
         eventConsumerBufferSize: 10  # Enable event consumption
 
+
   retry:
     configs:
       default:
         maxAttempts: 3
-        waitDuration: 100ms
+        waitDuration: 500ms
         enableExponentialBackoff: true
         exponentialBackoffMultiplier: 2
+        ignoreExceptions:
+          - java.lang.NullPointerException
+        retryExceptions:
+          - java.util.concurrent.TimeoutException
 
 
 #        recordExceptions:

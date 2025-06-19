@@ -25,6 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.TimeoutException;
+
 @Slf4j
 @Tag(
         name = "CRUD REST APIs accounts for my-Banking application",
@@ -181,9 +183,9 @@ public class AccountsController {
 
     @Retry(name = "getBuildInfo", fallbackMethod = "getBuildInfoFallback")
     @GetMapping("/build-info")
-    public ResponseEntity<String> getBuildInfo() {
+    public ResponseEntity<String> getBuildInfo() throws TimeoutException{
         log.debug("getBuildInfo() method Invoked");
-        throw new NullPointerException();
+        throw new TimeoutException();
 //        return ResponseEntity.ok(buildVersion);
     }
 
