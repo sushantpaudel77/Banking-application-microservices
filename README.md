@@ -41,12 +41,12 @@ docker.io/sushantpaudel77/<service>:latest
 🐳 Docker Compose Setup
 Inside the docker-compose directory, you’ll find four environment presets:
 
-
 docker-compose/
 ├── default/
 ├── h2DB/
 ├── prod/
 └── qa/
+
 🧩 You can use whatever suits your need:
 default and h2DB → Use in-memory H2 database
 
