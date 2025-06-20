@@ -10,7 +10,7 @@ run_service() {
   cd $SERVICE_NAME
   ./mvnw spring-boot:run -DskipTests &
   cd ..
-  sleep 10  # wait for service to start
+  sleep 15  # wait for service to start
 }
 
 # STEP-BY-STEP BOOT ORDER
