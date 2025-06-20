@@ -27,16 +27,51 @@ To simplify Docker image management, the following shell scripts are provided un
 ### ✅ Run the Scripts
 
 ```bash
-# Build only
+Scripts Overview
+This folder contains handy scripts to build, push, run, and stop your microservices efficiently using Jib and Maven.
+
+Available Scripts
+
+1. Build all Docker images
 ./scripts/jib-build-all.sh
+Builds Docker images for all microservices using Jib.
 
-# Push only
+No Dockerfile needed.
+
+Images are tagged as docker.io/sushantpaudel77/<service>:latest.
+
+2. Push all Docker images
 ./scripts/push-all-images.sh
+Pushes all locally built images to Docker Hub (docker.io/sushantpaudel77).
 
-# Build and push all
+3. Build and push all images
 ./scripts/jib-build-all-and-push-all.sh
-These scripts use Jib, so no Dockerfile is required. Images will be pushed to Docker Hub under:
-docker.io/sushantpaudel77/<service>:latest
+Combines build and push into a single step for all services.
+
+4. Run all services
+./scripts/run-services.sh
+Starts all microservices one by one using Maven.
+
+Each service runs in the background (&) with tests skipped (-DskipTests).
+
+Waits between services to ensure proper startup order.
+
+5. Stop all services
+./scripts/stop-services.sh
+Stops all Spring Boot services started via spring-boot:run.
+
+Gracefully kills all related Java processes.
+
+Force kills any stubborn processes after a short wait.
+
+Notes
+Ensure Maven Wrapper (./mvnw) has execution permission (chmod +x ./mvnw) or use mvn if Maven is installed globally.
+
+You must be logged in to Docker Hub to push images.
+
+Images are tagged with the latest tag and pushed to your Docker Hub repository under your username sushantpaudel77.
+
+Adjust sleep times inside run-services.sh if some services need more time to start properly.
 
 🐳 Docker Compose Setup
 Inside the docker-compose directory, you’ll find four environment presets:
