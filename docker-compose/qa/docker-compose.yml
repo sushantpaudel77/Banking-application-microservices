@@ -1,20 +1,23 @@
 services:
 
-  #  rabbit:
-  #    image: rabbitmq:3-management
-  #    container_name: rabbitmq-ms
-  #    ports:
-  #      - "5672:5672"
-  #      - "15672:15672"
-  #    healthcheck:
-  #      test: ["CMD", "rabbitmqctl", "status"]
-  #      start_period: 10s
-  #      interval: 10s
-  #      timeout: 5s
-  #      retries: 5
-  #    extends:
-  #      file: common-config.yml
-  #      service: network-deploy-service
+  rabbit:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-ms
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI port
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
   redis:
     image: redis
@@ -28,6 +31,7 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
+  # Database Services
   accountsdb:
     image: mysql:8.0
     container_name: accountsdb
@@ -36,6 +40,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: accountsdb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     extends:
       file: common-config.yml
       service: network-deploy-service
@@ -48,6 +58,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: loansdb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     extends:
       file: common-config.yml
       service: network-deploy-service
@@ -60,6 +76,12 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: cardsdb
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     extends:
       file: common-config.yml
       service: network-deploy-service
@@ -70,6 +92,9 @@ services:
     container_name: configserver-ms
     ports:
       - "8071:8071"
+    depends_on:
+      rabbit:
+        condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
@@ -80,6 +105,10 @@ services:
       SPRING_APPLICATION_NAME: configserver
       SPRING_PROFILES_ACTIVE: git
       ENCRYPT_KEY: fdohfdfo30r3nr0u23rkoewf0892u3r0938jn3f30r309
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-base-config
@@ -92,17 +121,23 @@ services:
     depends_on:
       configserver:
         condition: service_healthy
+      rabbit:
+        condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:8070/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 10s
+    environment:
+      SPRING_APPLICATION_NAME: "eurekaserver"
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-configserver-config
-    environment:
-      SPRING_APPLICATION_NAME: "eurekaserver"
 
   # Microservices
   accounts:
@@ -112,10 +147,12 @@ services:
       - "8080:8080"
     depends_on:
       accountsdb:
-        condition: service_started
+        condition: service_healthy
       configserver:
         condition: service_healthy
       eurekaserver:
+        condition: service_healthy
+      rabbit:
         condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
@@ -128,6 +165,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://accountsdb:3306/accountsdb
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -139,10 +180,12 @@ services:
       - "8090:8090"
     depends_on:
       loansdb:
-        condition: service_started
+        condition: service_healthy
       configserver:
         condition: service_healthy
       eurekaserver:
+        condition: service_healthy
+      rabbit:
         condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:8090/actuator/health/readiness | grep UP || exit 1"
@@ -155,6 +198,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://loansdb:3306/loansdb
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -166,10 +213,12 @@ services:
       - "9000:9000"
     depends_on:
       cardsdb:
-        condition: service_started
+        condition: service_healthy
       configserver:
         condition: service_healthy
       eurekaserver:
+        condition: service_healthy
+      rabbit:
         condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:9000/actuator/health/readiness | grep UP || exit 1"
@@ -182,6 +231,10 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://cardsdb:3306/cardsdb
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-eureka-config
@@ -198,6 +251,10 @@ services:
         condition: service_healthy
       cards:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbit:
+        condition: service_healthy
     healthcheck:
       test: "curl --fail --silent localhost:8072/actuator/health/readiness | grep UP || exit 1"
       interval: 10s
@@ -210,6 +267,10 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_TIMEOUT: 1s
+      SPRING_RABBITMQ_HOST: rabbit
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
     extends:
       file: common-config.yml
       service: microservice-eureka-config
