@@ -47,3 +47,9 @@ logging:
   level:
     org.springframework.cloud.config: INFO
     org.springframework.web: INFO
+
+#  rabbitmq:
+#    host: localhost         # or your RabbitMQ container name
+#    port: 5672
+#    username: guest         # default
+#    password: guest

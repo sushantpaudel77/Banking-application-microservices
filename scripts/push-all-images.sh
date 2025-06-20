@@ -1,8 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Exit immediately if a command exits with a non-zero status
+set -e
 
 # Docker Hub login
-echo "Logging into Docker Hub..."
-docker login
+echo "🔐 Logging into Docker Hub..."
+if ! docker login; then
+  echo "❌ Docker login failed. Exiting..."
+  exit 1
+fi
+
+# Tag (default to 'latest' if not passed as an argument)
+TAG="${1:-latest}"
 
 # List of fully qualified image names
 images=(
@@ -14,18 +23,17 @@ images=(
   "sushantpaudel77/gatewayserver"
 )
 
-echo "🚀 Starting push to Docker Hub..."
+echo -e "\n🚀 Starting push to Docker Hub with tag: \033[1;32m$TAG\033[0m"
+start_time=$(date +%s)
 
 for image in "${images[@]}"; do
-  echo "📤 Pushing ${image}:latest..."
-  docker push "${image}:latest"
-
-  if [ $? -eq 0 ]; then
-    echo "✅ Successfully pushed ${image}"
+  echo -e "\n📤 Pushing \033[1;34m${image}:${TAG}\033[0m..."
+  if docker push "${image}:${TAG}"; then
+    echo -e "✅ \033[1;32mSuccessfully pushed ${image}:${TAG}\033[0m"
   else
-    echo "❌ Failed to push ${image}"
+    echo -e "❌ \033[1;31mFailed to push ${image}:${TAG}\033[0m"
   fi
 done
 
-echo "All images pushed to Docker Hub!"
-
+end_time=$(date +%s)
+echo -e "\n🏁 All pushes completed in $((end_time - start_time)) seconds."

@@ -26,6 +26,24 @@ spring:
     properties:
       hibernate.format_sql: true
 
+
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/accountsDB
+#    username: your_username
+#    password: your_password
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: update
+#      ddl-auto: create-drop
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+#        format_sql: true
+
+
   config:
     import: "optional:configserver:http://localhost:8071/"
 
@@ -113,4 +131,11 @@ info:
 logging:
   level:
     com.microservices.accounts: DEBUG
-    io.github.resilience4j: DEBUG  # Add this for circuit breaker logs
+    io.github.resilience4j: DEBUG  # Add this for circuit breaker
+
+
+#  rabbitmq:
+#    host: localhost
+#    port: 5672
+#    username: guest
+#    password: guest
