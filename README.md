@@ -59,9 +59,6 @@ Update your Spring Boot microservices' application.yml files with MySQL configur
 
 Rebuild your services using Jib so the images include MySQL dependencies:
 
-bash
-Copy
-Edit
 ./scripts/jib-build-all.sh
 This ensures that each service is packaged with the correct database drivers and settings for MySQL.
 
