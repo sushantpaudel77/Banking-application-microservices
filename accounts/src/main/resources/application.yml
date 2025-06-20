@@ -81,6 +81,12 @@ resilience4j:
         retryExceptions:
           - java.util.concurrent.TimeoutException
 
+resilience4j.ratelimiter:
+  configs:
+    default:
+      timeoutDuration: 1000          # Max wait time (in ms) to acquire a permit before failing
+      limitRefreshPeriod: 5000       # Time window duration (in ms) after which permits are refreshed
+      limitForPeriod: 1              # Number of permits allowed per refresh period
 
 #        recordExceptions:
 #          - java.net.ConnectException

@@ -6,6 +6,7 @@ import com.microservices.accounts.dto.CustomerDto;
 import com.microservices.accounts.dto.ErrorResponseDto;
 import com.microservices.accounts.dto.ResponseDto;
 import com.microservices.accounts.service.AccountsService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nonnull;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +39,10 @@ import org.springframework.web.bind.annotation.*;
 public class AccountsController {
 
     private final AccountsService accountsService;
-    private final Environment environment;
     private final AccountContactDto accountContactDto;
 
     @Value("${build.version}")
     private String buildVersion;
-
 
     @Operation(
             summary = "Create Account REST API",
@@ -206,9 +206,16 @@ public class AccountsController {
                     schema = @Schema(implementation = ErrorResponseDto.class)
             )
     )
+
+    @RateLimiter(name = "getJavaVersion", fallbackMethod = "getJavaVersionFallback")
     @GetMapping("/java-version")
     public ResponseEntity<String> getJavaVersion() {
-        return ResponseEntity.ok(environment.getProperty("JAVA_HOME"));
+        String javaVersion = System.getProperty("java.version");
+        return ResponseEntity.ok("Java Version: " + javaVersion);
+    }
+
+    public ResponseEntity<String> getJavaVersionFallback(Throwable throwable) {
+        return ResponseEntity.ok("Java 17");
     }
 
     @Operation(
