@@ -53,25 +53,33 @@ default and h2DB → Use in-memory H2 database
 prod and qa → Can be configured with MySQL or external DBs
 
 ⚠️ NOTE: Using MySQL?
-If you're planning to use MySQL, make sure:
+If you're planning to use MySQL, make sure to:
 
-Your Spring Boot microservices are configured for MySQL in application.yml
+Update your Spring Boot microservices' application.yml files with MySQL configuration
 
-You rebuild the services using:
+Rebuild your services using Jib so the images include MySQL dependencies:
 
+bash
+Copy
+Edit
 ./scripts/jib-build-all.sh
-Because Jib will package them with MySQL dependencies.
+This ensures that each service is packaged with the correct database drivers and settings for MySQL.
 
 🐳 Docker Compose Commands
-Start All Services
+Here are the essential Docker Compose commands to manage your environment:
 
+✅ Start All Services
 docker compose up --build
-Stop All Services
+This will build the images (if needed) and start all services defined in your Compose file.
 
+🛑 Stop All Services
 docker compose down
-Stop & Remove Volumes (e.g., when using MySQL and want clean DB)
+This stops and removes all containers, but preserves volumes (your DB data stays safe).
 
+💣 Stop and Remove Everything (Clean MySQL Setup)
 docker compose down -v
+This also removes all volumes, which is useful when you want a fresh MySQL setup.
+
 📈 Coming Soon
 ✅ Monitoring using Prometheus & Grafana
 
