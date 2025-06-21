@@ -1,19 +1,8 @@
 services:
-  #  redis:
-  #    image: redis
-  #    ports:
-  #      - "6379:6379"
-  #    healthcheck:
-  #      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
-  #      timeout: 10s
-  #      retries: 10
-  #    extends:
-  #      file: common-config.yml
-  #      service: network-deploy-service
-
+  
   read:
     image: grafana/loki:3.1.2
-    command: "-config.file=/etc/loki/loki-config.yaml -target=read,query-frontend,query-scheduler"
+    command: "-config.file=/etc/loki/loki-config.yaml -target=read,query-frontend,query-scheduler,querier"
     ports:
       - "3101:3100"
       - "7946"
@@ -32,13 +21,14 @@ services:
         aliases:
           - loki
 
-    # Loki Write Component (Ingester + Distributor)
   write:
     image: grafana/loki:3.1.2
-    command: "-config.file=/etc/loki/loki-config.yaml -target=write"
+    # ADD 'querier' to the target list here
+    command: "-config.file=/etc/loki/loki-config.yaml -target=write,querier"
     ports:
       - "3102:3100"
       - "7946"
+      - "9095"
     volumes:
       - ../observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
     depends_on:
@@ -51,10 +41,10 @@ services:
     networks:
       <<: *loki-dns
 
-    # Backend Component (Compactor + Ruler + Index Gateway)
   backend:
     image: grafana/loki:3.1.2
-    command: "-config.file=/etc/loki/loki-config.yaml -target=backend"
+    # ADD 'querier' to the target list here
+    command: "-config.file=/etc/loki/loki-config.yaml -target=backend,querier" # <-- MODIFIED
     ports:
       - "3103:3100"
       - "7946"
@@ -70,6 +60,101 @@ services:
     networks:
       <<: *loki-dns
 
+  gateway:
+    image: nginx:1.27.3
+    depends_on:
+      - read
+      - write
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        cat <<EOF > /etc/nginx/nginx.conf
+        user  nginx;
+        worker_processes  5;
+        
+        events {
+          worker_connections  1000;
+        }
+        
+        http {
+          resolver 127.0.0.11;
+        
+          # Add proxy timeout settings
+          proxy_connect_timeout       300s;
+          proxy_send_timeout          300s;
+          proxy_read_timeout          300s;
+          send_timeout                300s;
+        
+          server {
+            listen 3100;
+        
+            location = / {
+              return 200 'OK';
+              auth_basic off;
+            }
+        
+            location = /api/prom/push {
+              proxy_pass http://write:3100\$$request_uri;
+              # Add specific timeouts for write operations
+              proxy_connect_timeout 60s;
+              proxy_send_timeout 60s;
+              proxy_read_timeout 60s;
+            }
+        
+            location = /api/prom/tail {
+              proxy_pass http://read:3100\$$request_uri;
+              proxy_set_header Upgrade "\$$http_upgrade";
+              proxy_set_header Connection "upgrade";
+              # Longer timeout for streaming
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+            }
+        
+            location ~ /api/prom/.* {
+              proxy_pass http://read:3100\$$request_uri;
+              # Longer timeout for query operations
+              proxy_connect_timeout 300s;
+              proxy_send_timeout 300s;
+              proxy_read_timeout 300s;
+            }
+        
+            location = /loki/api/v1/push {
+              proxy_pass http://write:3100\$$request_uri;
+              proxy_connect_timeout 60s;
+              proxy_send_timeout 60s;
+              proxy_read_timeout 60s;
+            }
+        
+            location = /loki/api/v1/tail {
+              proxy_pass http://write:3100\$$request_uri;
+              proxy_set_header Upgrade "\$$http_upgrade";
+              proxy_set_header Connection "upgrade";
+              proxy_read_timeout 3600s;
+              proxy_send_timeout 3600s;
+            }
+        
+            location ~ /loki/api/.* {
+              proxy_pass http://read:3100\$$request_uri;
+              # This is crucial for query_range operations
+              proxy_connect_timeout 300s;
+              proxy_send_timeout 300s;
+              proxy_read_timeout 300s;
+            }
+          }
+        }
+        EOF
+        /docker-entrypoint.sh nginx -g "daemon off;"
+    ports:
+      - "3100:3100"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:3100/ || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 20
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
   alloy:
     image: grafana/alloy:v1.5.1
@@ -84,7 +169,6 @@ services:
     extends:
       file: common-config.yml
       service: network-deploy-service
-
 
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z
@@ -119,6 +203,10 @@ services:
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      # Add dataproxy timeout settings
+      - GF_DATAPROXY_TIMEOUT=300
+      - GF_DATAPROXY_DIAL_TIMEOUT=300
+      - GF_DATAPROXY_KEEP_ALIVE_SECONDS=300
     depends_on:
       - gateway
     entrypoint:
@@ -133,8 +221,11 @@ services:
             type: loki
             access: proxy
             url: http://gateway:3100
+            timeout: 300
             jsonData:
               httpHeaderName1: "X-Scope-OrgID"
+              timeout: 300
+              maxLines: 1000
             secureJsonData:
               httpHeaderValue1: "tenant1"
         EOF
@@ -150,75 +241,6 @@ services:
       file: common-config.yml
       service: network-deploy-service
 
-  gateway:
-    image: nginx:1.27.3
-    depends_on:
-      - read
-      - write
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        cat <<EOF > /etc/nginx/nginx.conf
-        user  nginx;
-        worker_processes  5;  ## Default: 1
-        
-        events {
-          worker_connections   1000;
-        }
-        
-        http {
-          resolver 127.0.0.11;
-        
-          server {
-            listen             3100;
-        
-            location = / {
-              return 200 'OK';
-              auth_basic off;
-            }
-        
-            location = /api/prom/push {
-              proxy_pass       http://write:3100\$$request_uri;
-            }
-        
-            location = /api/prom/tail {
-              proxy_pass       http://read:3100\$$request_uri;
-              proxy_set_header Upgrade \$$http_upgrade;
-              proxy_set_header Connection "upgrade";
-            }
-        
-            location ~ /api/prom/.* {
-              proxy_pass       http://read:3100\$$request_uri;
-            }
-        
-            location = /loki/api/v1/push {
-              proxy_pass       http://write:3100\$$request_uri;
-            }
-        
-            location = /loki/api/v1/tail {
-              proxy_pass       http://read:3100\$$request_uri;
-              proxy_set_header Upgrade \$$http_upgrade;
-              proxy_set_header Connection "upgrade";
-            }
-        
-            location ~ /loki/api/.* {
-              proxy_pass       http://read:3100\$$request_uri;
-            }
-          }
-        }
-        EOF
-        /docker-entrypoint.sh nginx -g "daemon off;"
-    ports:
-      - "3100:3100"
-    healthcheck:
-      test: [ "CMD", "service", "nginx", "status" ]
-      interval: 20s
-      timeout: 5s
-      retries: 20
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
 
   configserver:
     image: "sushantpaudel77/configserver"
