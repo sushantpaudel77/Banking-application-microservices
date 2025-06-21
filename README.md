@@ -112,8 +112,61 @@ This stops and removes all containers, but preserves volumes (your DB data stays
 docker compose down -v
 This also removes all volumes, which is useful when you want a fresh MySQL setup.
 
+🛠️ How to Run Monitoring Tools with Docker Compose
+📁 Prerequisites
+Ensure you are inside your monitoring Docker Compose project folder:
+
+cd ~/Desktop/myFolder/workspace/microservices\ for\ ezypay/docker-compose/h2DB
+🚀 1. Start All Monitoring Services
+docker compose up --build
+This will:
+
+Build and start all containers (Grafana, Loki read/write/backend, Gateway, Alloy, Minio).
+
+Apply all config files.
+
+Watch logs for health checks to pass (especially read, write, grafana, and gateway).
+
+🧹 2. Stop All Services (Keep Volumes)
+docker compose down
+Stops and removes all running containers.
+
+Keeps data stored in named volumes (e.g., minio-data).
+
+🔥 3. Full Reset (Delete Containers + Volumes)
+docker compose down -v
+Stops containers and removes all volumes.
+
+Use this if:
+
+You want a clean database/storage.
+
+You suspect old data/config is causing issues.
+
+📊 4. Access Interfaces
+Tool	URL
+Grafana	http://localhost:3000
+Minio UI	http://localhost:9000
+Username: loki, Password: supersecret
+
+🧪 5. Testing Queries (in Grafana Explore)
+Try querying logs with:
+
+{container="account-ms"} |= "Started"
+Make sure datasource is set to Loki.
+
+Choose a short time range (last 5–10 minutes) for quick results.
+
+🚨 Troubleshooting
+Check container logs:
+
+docker compose logs -f read write backend gateway grafana
+Check if Minio buckets loki-data and loki-ruler exist (create via Minio UI if missing).
+
+Ensure /etc/nginx/nginx.conf is correctly rendered (run inside gateway: cat /etc/nginx/nginx.conf).
+
+
 📈 Coming Soon
-✅ Monitoring using Prometheus & Grafana
 
 🔐 Security using Keycloak (OAuth2 / OIDC)
 
