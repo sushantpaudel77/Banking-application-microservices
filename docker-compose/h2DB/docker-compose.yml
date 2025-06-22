@@ -11,6 +11,19 @@ services:
   #      file: common-config.yml
   #      service: network-deploy-service
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.4
+    container_name: keycloak
+    ports:
+      - "7080:7080"
+    environment:
+      KEYCLOAK_ADMIN: "admin"
+      KEYCLOAK_ADMIN_PASSWORD: "admin"
+    command: "start-dev"
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
   read:
     image: grafana/loki:3.1.2
     command: "-config.file=/etc/loki/loki-config.yaml -target=read,query-frontend,query-scheduler"
@@ -288,8 +301,6 @@ services:
   accounts:
     image: "sushantpaudel77/accounts"
     container_name: account-ms
-    ports:
-      - "8080:8080"
     depends_on:
       configserver:
         condition: service_healthy
@@ -310,8 +321,6 @@ services:
   loans:
     image: "sushantpaudel77/loans"
     container_name: loans-ms
-    ports:
-      - "8090:8090"
     depends_on:
       configserver:
         condition: service_healthy
@@ -332,8 +341,6 @@ services:
   cards:
     image: "sushantpaudel77/cards"
     container_name: cards-ms
-    ports:
-      - "9000:9000"
     depends_on:
       configserver:
         condition: service_healthy
@@ -373,6 +380,8 @@ services:
       start_period: 10s
     environment:
       SPRING_APPLICATION_NAME: gatewayserver
+      OTEL_SERVICE_NAME: gatewayserver
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT-SET-URI: "http://keycloak:8080/realms/master/protocol/openid-connect/certs"
     #      SPRING_DATA_REDIS_CONNECT-TIMEOUT: 2s
     #      SPRING_DATA_REDIS_HOST: redis
     #      SPRING_DATA_REDIS_PORT: 6379
