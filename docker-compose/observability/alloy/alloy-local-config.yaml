@@ -1,57 +1,126 @@
 // Discover Docker containers
-  discovery.docker "docker_containers" {
-  host             = "unix:///var/run/docker.sock"
-  refresh_interval = "10s"
+discovery.docker "docker_containers" {
+host             = "unix:///var/run/docker.sock"
+refresh_interval = "10s"
 }
 
-  // Relabel discovered containers
-  discovery.relabel "docker_containers" {
-  targets = discovery.docker.docker_containers.targets
-  
-  // Extract container name (removing leading slash and instance number)
-  rule {
-  source_labels = ["__meta_docker_container_name"]
-  regex         = "/([a-zA-Z0-9_-]+)(-[0-9]+)?$"
-  target_label  = "container"
-  replacement   = "$1"
+// Relabel discovered containers
+discovery.relabel "docker_containers" {
+targets = discovery.docker.docker_containers.targets
+
+// Keep only running containers
+rule {
+source_labels = ["__meta_docker_container_running"]
+regex         = "true"
+action        = "keep"
 }
 
-  // Extract service name from compose labels
-  rule {
-  source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
-  target_label  = "service"
+// Extract container name (removing leading slash)
+rule {
+source_labels = ["__meta_docker_container_name"]
+regex         = "/(.+)"
+target_label  = "container"
+replacement   = "${1}"
 }
 
-  // Extract project name from compose labels
-  rule {
-  source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
-  target_label  = "project"
+// Extract service name from compose labels
+rule {
+source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+target_label  = "service"
+regex         = "(.+)"
+replacement   = "${1}"
 }
 
-  // Add hostname
-  rule {
-  target_label = "host"
-  replacement  = "${HOSTNAME}"
-  }
+// Extract project name from compose labels
+rule {
+source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+target_label  = "project"
+regex         = "(.+)"
+replacement   = "${1}"
 }
 
-  // Process and forward logs
-  loki.source.docker "docker_logs" {
-  host       = "unix:///var/run/docker.sock"
-  targets    = discovery.relabel.docker_containers.output
-  forward_to = [loki.write.default.receiver]
-  
-  // Add common labels to all logs
-  labels = {
-  app       = "my-banking-application",
-  component = "microservice",
-  env       = "dev",
-  }
+// Add image name
+rule {
+source_labels = ["__meta_docker_container_image"]
+target_label  = "image"
+regex         = "(.+)"
+replacement   = "${1}"
 }
 
-  // Write to Loki through the gateway
-  loki.write "default" {
-  endpoint {
-  url = "http://gateway:3100/loki/api/v1/push"
-  }
+// Add container ID (short form)
+rule {
+source_labels = ["__meta_docker_container_id"]
+regex         = "(.{12}).*"
+target_label  = "container_id"
+replacement   = "${1}"
+}
+
+// Add hostname
+rule {
+target_label = "host"
+replacement  = "docker-host"
+}
+
+// Keep containers that have compose service labels or are named containers
+rule {
+source_labels = ["__meta_docker_container_label_com_docker_compose_service", "container"]
+regex         = "(.+)|(.+-ms)|(.+server)|(.+)"
+action        = "keep"
+}
+}
+
+// Process and forward logs with proper labels
+loki.source.docker "docker_logs" {
+host       = "unix:///var/run/docker.sock"
+targets    = discovery.relabel.docker_containers.output
+forward_to = [loki.process.add_labels.receiver]
+
+// Add some static labels if needed
+labels = {
+environment = "dev"
+source      = "docker"
+}
+}
+
+// Optional: Add additional processing to clean up or add more labels
+loki.process "add_labels" {
+forward_to = [loki.write.default.receiver]
+
+stage.labels {
+values = {
+// These will be automatically inherited from the targets
+// but you can override or add additional logic here
+}
+}
+
+// Optional: Parse JSON logs from Spring Boot applications
+stage.match {
+selector = "{service=~\".*server|accounts|loans|cards\"}"
+
+stage.json {
+expressions = {
+timestamp = "timestamp"
+level     = "level"
+logger    = "logger"
+message   = "message"
+}
+}
+
+stage.labels {
+values = {
+level  = "level"
+logger = "logger"
+}
+}
+}
+}
+
+// Write to Loki through the gateway
+loki.write "default" {
+endpoint {
+url = "http://gateway:3100/loki/api/v1/push"
+headers = {
+"X-Scope-OrgID" = "tenant1",
+}
+}
 }
