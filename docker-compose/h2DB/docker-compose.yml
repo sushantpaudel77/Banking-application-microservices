@@ -1,8 +1,19 @@
 services:
-  
+  #  redis:
+  #    image: redis
+  #    ports:
+  #      - "6379:6379"
+  #    healthcheck:
+  #      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+  #      timeout: 10s
+  #      retries: 10
+  #    extends:
+  #      file: common-config.yml
+  #      service: network-deploy-service
+
   read:
     image: grafana/loki:3.1.2
-    command: "-config.file=/etc/loki/loki-config.yaml -target=read,query-frontend,query-scheduler,querier"
+    command: "-config.file=/etc/loki/loki-config.yaml -target=read,query-frontend,query-scheduler"
     ports:
       - "3101:3100"
       - "7946"
@@ -21,14 +32,13 @@ services:
         aliases:
           - loki
 
+    # Loki Write Component (Ingester + Distributor)
   write:
     image: grafana/loki:3.1.2
-    # ADD 'querier' to the target list here
-    command: "-config.file=/etc/loki/loki-config.yaml -target=write,querier"
+    command: "-config.file=/etc/loki/loki-config.yaml -target=write"
     ports:
       - "3102:3100"
       - "7946"
-      - "9095"
     volumes:
       - ../observability/loki/loki-config.yaml:/etc/loki/loki-config.yaml
     depends_on:
@@ -41,10 +51,10 @@ services:
     networks:
       <<: *loki-dns
 
+    # Backend Component (Compactor + Ruler + Index Gateway)
   backend:
     image: grafana/loki:3.1.2
-    # ADD 'querier' to the target list here
-    command: "-config.file=/etc/loki/loki-config.yaml -target=backend,querier" # <-- MODIFIED
+    command: "-config.file=/etc/loki/loki-config.yaml -target=backend"
     ports:
       - "3103:3100"
       - "7946"
@@ -59,6 +69,86 @@ services:
       retries: 20
     networks:
       <<: *loki-dns
+
+
+  alloy:
+    image: grafana/alloy:v1.5.1
+    volumes:
+      - ../observability/alloy/alloy-local-config.yaml:/etc/alloy/alloy-local-config.yaml:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/alloy-local-config.yaml
+    ports:
+      - "12345:12345"
+    depends_on:
+      - gateway
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+
+  minio:
+    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /data/loki-data && \
+        mkdir -p /data/loki-ruler && \
+        minio server /data
+    environment:
+      - MINIO_ROOT_USER=loki
+      - MINIO_ROOT_PASSWORD=supersecret
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+    ports:
+      - "9000"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 25s
+      timeout: 20s
+      retries: 10
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    depends_on:
+      - gateway
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat > /etc/grafana/provisioning/datasources/ds.yaml << 'EOF'
+        apiVersion: 1
+        datasources:
+          - name: Loki
+            type: loki
+            access: proxy
+            url: http://gateway:3100
+            jsonData:
+              httpHeaderName1: "X-Scope-OrgID"
+            secureJsonData:
+              httpHeaderValue1: "tenant1"
+        EOF
+        /run.sh
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 20
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
 
   gateway:
     image: nginx:1.27.3
@@ -148,99 +238,13 @@ services:
     ports:
       - "3100:3100"
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://localhost:3100/ || exit 1" ]
+      test: [ "CMD", "service", "nginx", "status" ]
       interval: 20s
       timeout: 5s
       retries: 20
     extends:
       file: common-config.yml
       service: network-deploy-service
-
-  alloy:
-    image: grafana/alloy:v1.5.1
-    volumes:
-      - ../observability/alloy/alloy-local-config.yaml:/etc/alloy/alloy-local-config.yaml:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/alloy-local-config.yaml
-    ports:
-      - "12345:12345"
-    depends_on:
-      - gateway
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
-
-  minio:
-    image: minio/minio:RELEASE.2024-12-18T13-15-44Z
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        mkdir -p /data/loki-data && \
-        mkdir -p /data/loki-ruler && \
-        minio server /data
-    environment:
-      - MINIO_ROOT_USER=loki
-      - MINIO_ROOT_PASSWORD=supersecret
-      - MINIO_PROMETHEUS_AUTH_TYPE=public
-      - MINIO_UPDATE=off
-    ports:
-      - "9000"
-    volumes:
-      - minio-data:/data
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
-      interval: 25s
-      timeout: 20s
-      retries: 10
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
-
-  grafana:
-    image: grafana/grafana:11.4.0
-    environment:
-      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      # Add dataproxy timeout settings
-      - GF_DATAPROXY_TIMEOUT=300
-      - GF_DATAPROXY_DIAL_TIMEOUT=300
-      - GF_DATAPROXY_KEEP_ALIVE_SECONDS=300
-    depends_on:
-      - gateway
-    entrypoint:
-      - sh
-      - -euc
-      - |
-        mkdir -p /etc/grafana/provisioning/datasources
-        cat > /etc/grafana/provisioning/datasources/ds.yaml << 'EOF'
-        apiVersion: 1
-        datasources:
-          - name: Loki
-            type: loki
-            access: proxy
-            url: http://gateway:3100
-            timeout: 300
-            jsonData:
-              httpHeaderName1: "X-Scope-OrgID"
-              timeout: 300
-              maxLines: 1000
-            secureJsonData:
-              httpHeaderValue1: "tenant1"
-        EOF
-        /run.sh
-    ports:
-      - "3000:3000"
-    healthcheck:
-      test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
-      interval: 20s
-      timeout: 5s
-      retries: 20
-    extends:
-      file: common-config.yml
-      service: network-deploy-service
-
 
   configserver:
     image: "sushantpaudel77/configserver"

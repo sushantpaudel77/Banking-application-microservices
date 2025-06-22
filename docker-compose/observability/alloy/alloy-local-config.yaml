@@ -1,57 +1,57 @@
-  // Discover Docker containers
-    discovery.docker "docker_containers" {
-    host             = "unix:///var/run/docker.sock"
-    refresh_interval = "10s"
+// Discover Docker containers
+  discovery.docker "docker_containers" {
+  host             = "unix:///var/run/docker.sock"
+  refresh_interval = "10s"
+}
+
+  // Relabel discovered containers
+  discovery.relabel "docker_containers" {
+  targets = discovery.docker.docker_containers.targets
+  
+  // Extract container name (removing leading slash and instance number)
+  rule {
+  source_labels = ["__meta_docker_container_name"]
+  regex         = "/([a-zA-Z0-9_-]+)(-[0-9]+)?$"
+  target_label  = "container"
+  replacement   = "$1"
+}
+
+  // Extract service name from compose labels
+  rule {
+  source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+  target_label  = "service"
+}
+
+  // Extract project name from compose labels
+  rule {
+  source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
+  target_label  = "project"
+}
+
+  // Add hostname
+  rule {
+  target_label = "host"
+  replacement  = "${HOSTNAME}"
   }
-    
-    // Relabel discovered containers
-    discovery.relabel "docker_containers" {
-    targets = discovery.docker.docker_containers.targets
-    
-    // Extract container name (removing leading slash and instance number)
-    rule {
-    source_labels = ["__meta_docker_container_name"]
-    regex         = "/([a-zA-Z0-9_-]+)(-[0-9]+)?$"
-    target_label  = "container"
-    replacement   = "$1"
-    }
-    
-    // Extract service name from compose labels
-    rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
-    target_label  = "service"
-    }
-    
-    // Extract project name from compose labels
-    rule {
-    source_labels = ["__meta_docker_container_label_com_docker_compose_project"]
-    target_label  = "project"
-    }
-    
-    // Add hostname
-    rule {
-    target_label = "host"
-    replacement  = "${HOSTNAME}"
-    }
+}
+
+  // Process and forward logs
+  loki.source.docker "docker_logs" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_containers.output
+  forward_to = [loki.write.default.receiver]
+  
+  // Add common labels to all logs
+  labels = {
+  app       = "my-banking-application",
+  component = "microservice",
+  env       = "dev",
   }
-    
-    // Process and forward logs
-    loki.source.docker "docker_logs" {
-    host       = "unix:///var/run/docker.sock"
-    targets    = discovery.relabel.docker_containers.output
-    forward_to = [loki.write.default.receiver]
-    
-    // Add common labels to all logs
-    labels = {
-    app       = "my-banking-application",
-    component = "microservice",
-    env       = "dev",
-    }
+}
+
+  // Write to Loki through the gateway
+  loki.write "default" {
+  endpoint {
+  url = "http://gateway:3100/loki/api/v1/push"
   }
-    
-    // Write to Loki through the gateway
-    loki.write "default" {
-    endpoint {
-    url = "http://gateway:3100/loki/api/v1/push"
-    }
-  }
+}

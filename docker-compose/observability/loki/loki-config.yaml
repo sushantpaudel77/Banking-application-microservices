@@ -1,23 +1,20 @@
+auth_enabled: false
+
 server:
   http_listen_address: 0.0.0.0
   http_listen_port: 3100
   grpc_listen_address: 0.0.0.0
   grpc_listen_port: 9095
 
-# Disable multi-tenancy
-auth_enabled: false
-
-# Memberlist configuration for service discovery
 memberlist:
-  join_members: ["read", "write", "backend"]
+  join_members: [ "read", "write", "backend" ]
   dead_node_reclaim_time: 30s
   gossip_to_dead_nodes_time: 15s
   left_ingesters_timeout: 30s
-  bind_addr: ['0.0.0.0']
+  bind_addr: [ '0.0.0.0' ]
   bind_port: 7946
   gossip_interval: 2s
 
-# Schema configuration
 schema_config:
   configs:
     - from: 2023-01-01
@@ -28,7 +25,6 @@ schema_config:
         prefix: index_
         period: 24h
 
-# Common configuration
 common:
   path_prefix: /loki
   replication_factor: 1
@@ -45,29 +41,24 @@ common:
     kvstore:
       store: memberlist
 
-# Query scheduler configuration
 query_scheduler:
   grpc_client_config:
     max_send_msg_size: 104857600
 
-# Query frontend configuration
 frontend:
   compress_responses: true
   max_outstanding_per_tenant: 2048
   scheduler_worker_concurrency: 5
 
-# Querier configuration
 querier:
   max_concurrent: 4
   query_ingesters_within: 3h
 
-# Distributor configuration
 distributor:
   ring:
     kvstore:
       store: memberlist
 
-# Ingester configuration
 ingester:
   lifecycler:
     address: 0.0.0.0
@@ -82,7 +73,6 @@ ingester:
   wal:
     dir: /loki/wal
 
-# Ruler configuration
 ruler:
   storage:
     type: s3
@@ -99,26 +89,22 @@ ruler:
       store: memberlist
   enable_api: true
 
-# Compactor configuration
 compactor:
   working_directory: /tmp/compactor
   retention_enabled: true
   delete_request_store: s3
 
-# Index gateway configuration
 index_gateway:
   mode: ring
   ring:
     kvstore:
       store: memberlist
 
-# Storage configuration
 storage_config:
   tsdb_shipper:
     active_index_directory: /loki/tsdb-index
     cache_location: /loki/tsdb-cache
 
-# Limits configuration
 limits_config:
   reject_old_samples: true
   reject_old_samples_max_age: 168h

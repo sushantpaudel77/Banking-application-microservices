@@ -166,17 +166,5 @@ Check if Minio buckets loki-data and loki-ruler exist (create via Minio UI if mi
 Ensure /etc/nginx/nginx.conf is correctly rendered (run inside gateway: cat /etc/nginx/nginx.conf).
 
 
-📈 Coming Soon
-
-🔐 Security using Keycloak (OAuth2 / OIDC)
-
-☸️ Kubernetes deployment
-
-🎯 Helm for Helm chart packaging & deployment
-
-🙌 Follow My Progress
-Stay tuned as I continue building and improving this system!
-You can find the config repo here → my-Banking-application-config-server
-
 Built with 💻, 💡, and a lot of #!/bin/bash
 — Sushant Paudel
