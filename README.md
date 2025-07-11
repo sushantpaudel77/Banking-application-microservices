@@ -166,5 +166,5 @@ Check if Minio buckets loki-data and loki-ruler exist (create via Minio UI if mi
 Ensure /etc/nginx/nginx.conf is correctly rendered (run inside gateway: cat /etc/nginx/nginx.conf).
 
 
-Built with 💻, 💡, and a lot of #!/bin/bash
+Built with 💻
 — Sushant Paudel
